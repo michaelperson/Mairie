@@ -1,15 +1,24 @@
-//Code temporaire qui sera supprimé dès que les secrets seront gérés correctement
-//!!!!!!NE PAS LAISSER CE CODE POUR LE GIT!!!!!!!
-//using Mairie.API.Helpers;
-
-//string secretValue = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=MairieDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False";
-//string encryptedSecret = SecretManager.Encrypt(secretValue);
-//Console.WriteLine($"Encrypted Secret: {encryptedSecret}");
-
+using Mairie.API.Helpers;
+using Mairie.DAL.Configuration;
+using Mairie.DAL.Repositories;
+using Mairie.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
+
+
+// Récupération de la chaîne de connexion depuis les configurations 
+string connectionString =builder.Configuration["DefaultConnection"]?? builder.Configuration    ["ConnectionStrings:DefaultConnection"]?? 
+     throw new InvalidOperationException("Connection string 'DefaultConnection' introuvable");
 // Add services to the container.
+// Enregistrement de la configuration de la base de données avec la chaîne de connexion décryptée
+builder.Services.AddSingleton(new DatabaseConfiguration(SecretManager.Decrypt(connectionString)));
+// Enregistrement des repositories
+builder.Services.AddScoped<IDemandeRepository, DemandeRepository>();
+
+
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
