@@ -1,6 +1,7 @@
 ﻿using Mairie.API.DTOs;
 using Mairie.Domain.Entities;
 using Mairie.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -99,6 +100,7 @@ namespace Mairie.API.Controllers
             }
         }
 
+        [Authorize(Policy = "Agent")]
         [HttpPost]
         public async Task<ActionResult<Demande>> Create([FromBody] CreateDemandeDto dto)
         {
@@ -155,7 +157,7 @@ namespace Mairie.API.Controllers
                     Id = dto.Id,
                     NomCitoyen = dto.NomCitoyen.Trim(),
                     TypeDemande = dto.TypeDeDemande.Trim(),
-                    Statut = dto.Statut,
+                    Statut = existingDemande.Statut,
                     DateCreation = existingDemande.DateCreation
                 };
 
@@ -174,6 +176,56 @@ namespace Mairie.API.Controllers
             }
         }
 
+
+        [Authorize(Policy = "ChefService")]
+        [HttpPut("valider")]
+        public async Task<ActionResult> ValiderDemande(int id, [FromBody] UpdateDemandeDto dto)
+        {
+            if (id != dto.Id)
+            {
+                return BadRequest("L'ID dans l'URL ne correspond pas à l'ID dans le corps");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var existingDemande = await _repository.GetByIdAsync(id);
+                if (existingDemande == null)
+                {
+                    return NotFound($"Demande avec l'ID {id} introuvable");
+                }
+
+                var demande = new Demande
+                {
+                    Id = dto.Id,
+                    NomCitoyen = existingDemande.NomCitoyen,
+                    TypeDemande = existingDemande.TypeDemande,
+                    Statut = "Validé",
+                    DateCreation = existingDemande.DateCreation
+                };
+
+                var success = await _repository.UpdateAsync(demande);
+                if (!success)
+                {
+                    return StatusCode(500, "Échec de la mise à jour");
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la mise à jour de la demande {Id}", id);
+                return StatusCode(500, "Une erreur est survenue");
+            }
+        }
+
+
+
+        [Authorize(Policy = "Administrateur")]
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {

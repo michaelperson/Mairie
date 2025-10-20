@@ -15,8 +15,6 @@ namespace Mairie.API.DTOs
         [StringLength(100, MinimumLength = 10, ErrorMessage = "La type de deomande doit contenir entre 5 et 100 caractères")]
         public string TypeDeDemande { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Le statut est obligatoire")]
-        [StringLength(50, ErrorMessage = "Le statut ne peut pas dépasser 50 caractères")]
-        public string Statut { get; set; } = string.Empty;
+      
     }
 }
