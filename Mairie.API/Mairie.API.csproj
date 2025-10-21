@@ -19,8 +19,4 @@
     <ProjectReference Include="..\Mairie.DAL\Mairie.DAL.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Authorization\Requirements\" />
-  </ItemGroup>
-
 </Project>

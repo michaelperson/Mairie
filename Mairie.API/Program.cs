@@ -31,7 +31,7 @@ builder.Services.AddAuthorization(options =>
     // Politique personnalisée pour vérifier la propriété d'une demande
     options.AddPolicy("DemandeOwnerOrAbove", policy =>
     {
-        policy.Requirements.Add(new OwnsDemandeRequirement());
+        policy.Requirements.Add(new OwnsDemandeRequirement("DemandeOwnerOrAbove"));
     });
 });
 
@@ -81,4 +81,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.Run(); 
+app.Run();

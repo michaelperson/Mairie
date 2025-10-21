@@ -4,11 +4,11 @@ namespace Mairie.API.Infrastructure.Security
 {
     public class OwnsDemandeRequirement : IAuthorizationRequirement
     {
-        public string OperationName { get; }
+        public string Action { get; }
 
-        public OwnsDemandeRequirement(string operationName)
+        public OwnsDemandeRequirement(string action)
         {
-            OperationName = operationName;
+            Action = action;
         }
     }
 }
