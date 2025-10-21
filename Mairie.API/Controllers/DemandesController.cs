@@ -29,12 +29,24 @@ namespace Mairie.API.Controllers
         [SwaggerResponse(200, "Liste des demandes", typeof(IEnumerable<DemandeReadDTO>))]
         [SwaggerResponse(404, "Aucune demande trouvée")]
         [SwaggerResponse(500, "Erreur lors de la récupération des données")]
-        public async Task<ActionResult<IEnumerable<Demande>>> GetAll()
+        public async Task<ActionResult<IEnumerable<DemandeReadDTO>>> GetAll()
         {
             try
             {
-                var demandes = await _repository.GetAllAsync();
-                return Ok(demandes);
+                IEnumerable<Demande> demandes = await _repository.GetAllAsync();
+                if (demandes.Count() > 0)
+                    return Ok(
+                    demandes.Select(
+                                        d => new DemandeReadDTO()
+                                        {
+                                            Id = d.Id,
+                                            NomCitoyen = d.NomCitoyen,
+                                            Statut = d.Statut,
+                                            TypeDemande = d.TypeDemande
+
+                                        }
+                    ));
+                else return NotFound();
             }
             catch (Exception ex)
             {
@@ -133,7 +145,7 @@ namespace Mairie.API.Controllers
                 {
                     NomCitoyen = dto.NomCitoyen.Trim(),
                     TypeDemande = dto.TypeDeDemande.Trim(),
-                    Statut = "EnAttente",
+                    Statut = StatutEnum.EnCours,
                     DateCreation = DateTime.Now,
                     CreatedByWindowsId = User.Identity?.Name ?? "Inconnu"
                 };
@@ -223,7 +235,7 @@ namespace Mairie.API.Controllers
                     Id = dto.Id,
                     NomCitoyen = existingDemande.NomCitoyen,
                     TypeDemande = existingDemande.TypeDemande,
-                    Statut = "Validé",
+                    Statut = StatutEnum.Terminee,
                     DateCreation = existingDemande.DateCreation
                 };
 
