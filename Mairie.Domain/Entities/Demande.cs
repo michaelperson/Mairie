@@ -13,5 +13,7 @@ namespace Mairie.Domain.Entities
         public string TypeDemande { get; set; } = string.Empty;
         public string Statut { get; set; } = string.Empty;
         public DateTime DateCreation { get; set; } 
+
+        public string CreatedByWindowsId { get; set; } = string.Empty;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Mairie.API.DTOs;
+using Mairie.API.Infrastructure.Security;
 using Mairie.Domain.Entities;
 using Mairie.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -11,11 +12,13 @@ namespace Mairie.API.Controllers
     [ApiController]
     public class DemandesController : ControllerBase
     {
+        private readonly IAuthorizationService _authService;
         private readonly IDemandeRepository _repository;
         private readonly ILogger<DemandesController> _logger;
 
-        public DemandesController(IDemandeRepository repository, ILogger<DemandesController> logger)
+        public DemandesController(IAuthorizationService authService, IDemandeRepository repository, ILogger<DemandesController> logger)
         {
+            _authService = authService;
             _repository = repository;
             _logger = logger;
         }
@@ -51,8 +54,9 @@ namespace Mairie.API.Controllers
                     return NotFound($"Demande avec l'ID {id} introuvable");
                 }
                 /// Vérification des autorisations
-                var auth = await _authorizationService.AuthorizeAsync(User, demande, "DemandeOwnerOrAbove");
-                if (!auth.Succeeded)
+                var result = await _authService.AuthorizeAsync(User, demande, DemandeRequirement.Read);
+
+                if (!result.Succeeded)
                     return Forbid();
 
                 return Ok(demande);
@@ -106,6 +110,7 @@ namespace Mairie.API.Controllers
         }
 
         [Authorize(Policy = "Agent")]
+         
         [HttpPost]
         public async Task<ActionResult<Demande>> Create([FromBody] CreateDemandeDto dto)
         {
@@ -121,7 +126,8 @@ namespace Mairie.API.Controllers
                     NomCitoyen = dto.NomCitoyen.Trim(),
                     TypeDemande = dto.TypeDeDemande.Trim(),
                     Statut = "EnAttente",
-                    DateCreation = DateTime.Now
+                    DateCreation = DateTime.Now,
+                    CreatedByWindowsId = User.Identity?.Name ?? "Inconnu"
                 };
 
                 var id = await _repository.CreateAsync(demande);

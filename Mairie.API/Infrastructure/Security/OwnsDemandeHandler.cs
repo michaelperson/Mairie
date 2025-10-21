@@ -64,4 +64,4 @@ public class OwnsDemandeHandler : AuthorizationHandler<OwnsDemandeRequirement, D
         }
     }
 }
-}
+ 

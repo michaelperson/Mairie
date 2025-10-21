@@ -136,5 +136,6 @@ namespace Mairie.DAL.Repositories
             var searchPattern = $"%{searchTerm}%";
             return await connection.QueryAsync<Demande>(sql, new { SearchPattern = searchPattern });
         }
+         
     }
 }

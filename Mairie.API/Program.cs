@@ -37,10 +37,10 @@ builder.Services.AddAuthorization(options =>
 
 // Récupération de la chaîne de connexion depuis les configurations 
 string connectionString =builder.Configuration["DefaultConnection"]?? builder.Configuration    ["ConnectionStrings:DefaultConnection"]?? 
-     throw new InvalidOperationException("Connection string 'DefaultConnection' introuvable");
+     throw new InvalidOperationException("Connection string 'DefaultConnection' introuvable"); 
 // Add services to the container.
 // Enregistrement de la configuration de la base de données avec la chaîne de connexion décryptée
-builder.Services.AddSingleton(new DatabaseConfiguration(SecretManager.Decrypt(connectionString)));
+builder.Services.AddSingleton(new DatabaseConfiguration(SecretManager.Decrypt(connectionString).Replace("MairieDB", "MairieDB_test")));
 // Enregistrement des repositories
 builder.Services.AddScoped<IDemandeRepository, DemandeRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
