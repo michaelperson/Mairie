@@ -1,5 +1,5 @@
-﻿using Mairie.API.DTOs;
-using Mairie.API.Infrastructure.Security;
+﻿using Mairie.API.Infrastructure.Security;
+using Mairie.Domain.DTOs;
 using Mairie.Domain.Entities;
 using Mairie.Domain.Enumerations;
 using Mairie.Domain.Interfaces;
