@@ -239,18 +239,10 @@ namespace Mairie.API.Controllers
 
 
         [Authorize(Policy = "ChefService")]
-        [HttpPut("valider")]
-        public async Task<ActionResult> ValiderDemande(int id, [FromBody] UpdateDemandeDto dto)
+        [HttpPut("valider/{id:int}")]
+        public async Task<ActionResult> ValiderDemande(int id)
         {
-            if (id != dto.Id)
-            {
-                return BadRequest("L'ID dans l'URL ne correspond pas à l'ID dans le corps");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+              
 
             try
             {
@@ -262,7 +254,7 @@ namespace Mairie.API.Controllers
 
                 var demande = new Demande
                 {
-                    Id = dto.Id,
+                    Id = id,
                     NomCitoyen = existingDemande.NomCitoyen,
                     TypeDemande = existingDemande.TypeDemande,
                     Statut = StatutEnum.Terminee,
