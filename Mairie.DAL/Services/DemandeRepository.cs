@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Mairie.DAL.Configuration;
 using Mairie.Domain.Entities;
+using Mairie.Domain.Enumerations;
 using Mairie.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -8,16 +9,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mairie.DAL.Repositories
+namespace Mairie.DAL.Services
 {
-    public class DemandeRepository : IDemandeRepository
+    public class DemandeRepository :BaseRepository, IDemandeRepository
     {
-        private readonly DatabaseConfiguration _dbConfig;
-
-        public DemandeRepository(DatabaseConfiguration dbConfig)
-        {
-            _dbConfig = dbConfig ?? throw new ArgumentNullException(nameof(dbConfig));
-        }
+        public DemandeRepository(DatabaseConfiguration dbConfig) : base(dbConfig) { }
 
         public async Task<IEnumerable<Demande>> GetAllAsync()
         {
@@ -102,7 +98,7 @@ namespace Mairie.DAL.Repositories
             return rowsAffected > 0;
         }
 
-        public async Task<IEnumerable<Demande>> GetByStatutAsync(string statut)
+        public async Task<IEnumerable<Demande>> GetByStatutAsync(StatutEnum statut)
         {
             const string sql = @"
             SELECT 
@@ -115,7 +111,7 @@ namespace Mairie.DAL.Repositories
             ORDER BY DateCreation DESC";
 
             using var connection = _dbConfig.CreateConnection();
-            return await connection.QueryAsync<Demande>(sql, new { Statut = statut });
+            return await connection.QueryAsync<Demande>(sql, new { Statut = statut.ToString() });
         }
 
         public async Task<IEnumerable<Demande>> SearchAsync(string searchTerm)

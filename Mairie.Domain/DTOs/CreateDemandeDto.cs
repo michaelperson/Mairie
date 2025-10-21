@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Mairie.API.DTOs
+namespace Mairie.Domain.DTOs
 {
     public class CreateDemandeDto
     {
