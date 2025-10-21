@@ -109,8 +109,8 @@ namespace Mairie.API.Controllers
             }
         }
 
-        //[Authorize(Policy = "Agent")]
-         
+        [Authorize(Policy = "AdminOrAgent")]
+
         [HttpPost]
         public async Task<ActionResult<Demande>> Create([FromBody] CreateDemandeDto dto)
         {

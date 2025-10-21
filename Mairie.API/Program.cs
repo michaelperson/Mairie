@@ -27,6 +27,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Agent", p => p.RequireClaim(ClaimTypes.Role, "Agent"));
     options.AddPolicy("ChefService", p => p.RequireClaim(ClaimTypes.Role, "ChefService"));
     options.AddPolicy("Administrateur", p => p.RequireClaim(ClaimTypes.Role,"Administrateur"));
+    options.AddPolicy("AdminOrAgent", policy =>
+    policy.RequireRole("Administrateur", "Agent"));
 
     // Politique personnalisée pour vérifier la propriété d'une demande
     options.AddPolicy("DemandeOwnerOrAbove", policy =>
