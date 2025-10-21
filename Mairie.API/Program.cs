@@ -17,7 +17,9 @@ builder.Services.AddControllers();
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
     .AddNegotiate();
 
- 
+
+// Enregistrement du gestionnaire pour OwnsDemandeRequirement
+builder.Services.AddScoped<IAuthorizationHandler, OwnsDemandeHandler>();
 
 // Configuration des politiques d'autorisation basées sur les rôles
 builder.Services.AddAuthorization(options =>
@@ -29,8 +31,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Agent", p => p.RequireClaim(ClaimTypes.Role, "Agent"));
     options.AddPolicy("ChefService", p => p.RequireClaim(ClaimTypes.Role, "ChefService"));
     options.AddPolicy("Administrateur", p => p.RequireClaim(ClaimTypes.Role,"Administrateur"));
-    options.AddPolicy("AdminOrAgent", policy =>
-    policy.RequireRole("Administrateur", "Agent"));
+    options.AddPolicy("AdminOrAgent", policy => policy.RequireClaim(ClaimTypes.Role, "Administrateur", "Agent"));
 
     // Politique personnalisée pour vérifier la propriété d'une demande
     options.AddPolicy("DemandeOwnerOrAbove", policy =>
@@ -55,8 +56,6 @@ builder.Services.AddScoped<IUserContext, UserContext>();
 // Enregistrement du gestionnaire de le mapping entre rôles et claims
 builder.Services.AddScoped<IClaimsTransformation, RoleClaimsTransformation>();
 
-// Enregistrement du gestionnaire pour OwnsDemandeRequirement
-builder.Services.AddScoped<IAuthorizationHandler, OwnsDemandeHandler>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

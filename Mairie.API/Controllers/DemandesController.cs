@@ -78,7 +78,7 @@ namespace Mairie.API.Controllers
                     return NotFound($"Demande avec l'ID {id} introuvable");
                 }
                 /// Vérification des autorisations
-                var result = await _authService.AuthorizeAsync(User, demande, DemandeRequirement.Read);
+                AuthorizationResult? result = await _authService.AuthorizeAsync(User, demande, DemandeRequirement.Read);
 
                 if (!result.Succeeded)
                     return Forbid();
@@ -182,6 +182,8 @@ namespace Mairie.API.Controllers
                 {
                     return NotFound($"Demande avec l'ID {id} introuvable");
                 }
+                /// Vérification des autorisations
+                AuthorizationResult? result = await _authService.AuthorizeAsync(User, existingDemande, DemandeRequirement.Update);
 
                 var demande = new Demande
                 {
