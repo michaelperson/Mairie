@@ -41,7 +41,7 @@ namespace Mairie.DAL.Repositories
                 Id, 
                 NomCitoyen, 
                 TypeDemande, 
-                Statut 
+                Statut , CreatedByWindowsId
             FROM Demande
             WHERE Id = @Id";
 
@@ -53,9 +53,9 @@ namespace Mairie.DAL.Repositories
         {
             const string sql = @"
             INSERT INTO Demande 
-                (NomCitoyen, TypeDemande, Statut, DateCreation )
+                (NomCitoyen, TypeDemande, Statut, DateCreation, CreatedByWindowsId )
             VALUES 
-                (@NomCitoyen, @TypeDemande, @Statut, @DateCreation);
+                (@NomCitoyen, @TypeDemande, @Statut, @DateCreation, @CreatedByWindowsId);
             
             SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
@@ -65,7 +65,7 @@ namespace Mairie.DAL.Repositories
                 demande.NomCitoyen,
                 demande.TypeDemande,
                 demande.Statut,
-                demande.DateCreation, 
+                demande.DateCreation,demande.CreatedByWindowsId 
             });
         }
 
