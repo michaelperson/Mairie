@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Mairie.Domain.Enumerations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Mairie.Domain.DTOs
 {
@@ -14,6 +15,6 @@ namespace Mairie.Domain.DTOs
 
         [Required(ErrorMessage = "Le statut est obligatoire")]
         [StringLength(50, ErrorMessage = "Le statut ne peut pas dépasser 50 caractères")]
-        public string Statut { get; set; } = string.Empty;
+        public StatutEnum Statut { get; set; } =0;
     }
 }
