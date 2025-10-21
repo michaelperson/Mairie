@@ -50,6 +50,11 @@ namespace Mairie.API.Controllers
                 {
                     return NotFound($"Demande avec l'ID {id} introuvable");
                 }
+                /// Vérification des autorisations
+                var auth = await _authorizationService.AuthorizeAsync(User, demande, "DemandeOwnerOrAbove");
+                if (!auth.Succeeded)
+                    return Forbid();
+
                 return Ok(demande);
             }
             catch (Exception ex)

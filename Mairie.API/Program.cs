@@ -5,6 +5,7 @@ using Mairie.DAL.Repositories;
 using Mairie.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.HttpSys;
 using System.Security.Claims;
 
@@ -19,10 +20,19 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
 // Configuration des politiques d'autorisation basées sur les rôles
 builder.Services.AddAuthorization(options =>
 {
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
     options.FallbackPolicy = options.DefaultPolicy;
     options.AddPolicy("Agent", p => p.RequireClaim(ClaimTypes.Role, "Agent"));
     options.AddPolicy("ChefService", p => p.RequireClaim(ClaimTypes.Role, "ChefService"));
     options.AddPolicy("Administrateur", p => p.RequireClaim(ClaimTypes.Role,"Administrateur"));
+
+    // Politique personnalisée pour vérifier la propriété d'une demande
+    options.AddPolicy("DemandeOwnerOrAbove", policy =>
+    {
+        policy.Requirements.Add(new OwnsDemandeRequirement());
+    });
 });
 
 // Récupération de la chaîne de connexion depuis les configurations 
@@ -38,7 +48,11 @@ builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContext, UserContext>();
 
+// Enregistrement du gestionnaire de le mapping entre rôles et claims
 builder.Services.AddScoped<IClaimsTransformation, RoleClaimsTransformation>();
+
+// Enregistrement du gestionnaire pour OwnsDemandeRequirement
+builder.Services.AddScoped<IAuthorizationHandler, OwnsDemandeHandler>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -48,6 +62,12 @@ builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
+
+//En production, l'application utilise HSTS
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
