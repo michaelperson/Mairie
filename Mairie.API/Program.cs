@@ -1,4 +1,4 @@
-using Mairie.API.Helpers;
+Ôªøusing Mairie.API.Helpers;
 using Mairie.API.Infrastructure.Security;
 using Mairie.DAL.Configuration;
 using Mairie.DAL.Services;
@@ -12,7 +12,6 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers();
 // Configuration de l'authentification Windows
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
     .AddNegotiate();
@@ -21,7 +20,7 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
 // Enregistrement du gestionnaire pour OwnsDemandeRequirement
 builder.Services.AddScoped<IAuthorizationHandler, OwnsDemandeHandler>();
 
-// Configuration des politiques d'autorisation basÈes sur les rÙles
+// Configuration des politiques d'autorisation bas√©es sur les r√¥les
 builder.Services.AddAuthorization(options =>
 {
     options.DefaultPolicy = new AuthorizationPolicyBuilder()
@@ -33,27 +32,27 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Administrateur", p => p.RequireClaim(ClaimTypes.Role,"Administrateur"));
     options.AddPolicy("AdminOrAgent", policy => policy.RequireClaim(ClaimTypes.Role, "Administrateur", "Agent"));
 
-    // Politique personnalisÈe pour vÈrifier la propriÈtÈ d'une demande
+    // Politique personnalis√©e pour v√©rifier la propri√©t√© d'une demande
     options.AddPolicy("DemandeOwnerOrAbove", policy =>
     {
         policy.Requirements.Add(new OwnsDemandeRequirement("DemandeOwnerOrAbove"));
     });
 });
 
-// RÈcupÈration de la chaÓne de connexion depuis les configurations 
+// R√©cup√©ration de la cha√Æne de connexion depuis les configurations 
 string connectionString =builder.Configuration["DefaultConnection"]?? builder.Configuration    ["ConnectionStrings:DefaultConnection"]?? 
      throw new InvalidOperationException("Connection string 'DefaultConnection' introuvable"); 
 // Add services to the container.
-// Enregistrement de la configuration de la base de donnÈes avec la chaÓne de connexion dÈcryptÈe
+// Enregistrement de la configuration de la base de donn√©es avec la cha√Æne de connexion d√©crypt√©e
 builder.Services.AddSingleton(new DatabaseConfiguration(SecretManager.Decrypt(connectionString).Replace("MairieDB", "MairieDB_test")));
 // Enregistrement des repositories
 builder.Services.AddScoped<IDemandeRepository, DemandeRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-// Enregistrement de l'accessor pour le contexte HTTP et rÈcupÈration des informations utilisateur 
+// Enregistrement de l'accessor pour le contexte HTTP et r√©cup√©ration des informations utilisateur 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContext, UserContext>();
 
-// Enregistrement du gestionnaire de le mapping entre rÙles et claims
+// Enregistrement du gestionnaire de le mapping entre r√¥les et claims
 builder.Services.AddScoped<IClaimsTransformation, RoleClaimsTransformation>();
 
 
@@ -75,16 +74,26 @@ builder.Services.AddSwaggerGen(
 
 
     );
+
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-
-
+//COnfiguration des cors
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("https://localhost:7039") // Port de notre Blazor App
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // ‚Üê IMPORTANT pour Windows Auth
+    });
+});
 
 var app = builder.Build();
-
+app.UseCors();
 //En production, l'application utilise HSTS
 if (!app.Environment.IsDevelopment())
 {
@@ -102,10 +111,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 if (!app.Environment.IsDevelopment())
 {
-    // RecommandÈ pour la production pour forcer HTTPS
+    // Recommand√© pour la production pour forcer HTTPS
     app.UseHsts();
 }
-// Ajoute des en-tÍtes comme X-Frame-Options, X-Content-Type-Options, Referrer-Policy, etc.
+// Ajoute des en-t√™tes comme X-Frame-Options, X-Content-Type-Options, Referrer-Policy, etc.
 app.UseSecureHeadersMiddleware();
 
 app.UseAuthentication();

@@ -1,0 +1,139 @@
+﻿@using Mairie.App.Services.Interfaces
+@using Mairie.Domain.DTOs
+@inject IAuthService AuthService
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-clipboard-check"></i> Gestion des Demandes
+        </a>
+        <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="@NavMenuCssClass navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                        <i class="bi bi-house-door"></i> Accueil
+                    </NavLink>
+                </li>
+
+                @if (currentUser != null)
+                {
+                    @if (currentUser.HasRole(RoleEnum.Agent) || currentUser.HasRole(RoleEnum.ChefService))
+                    {
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/demandes">
+                                <i class="bi bi-list-ul"></i> Demandes
+                            </NavLink>
+                        </li>
+                    }
+
+                    @if (currentUser.HasRole(RoleEnum.Agent))
+                    {
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/demandes/create">
+                                <i class="bi bi-plus-circle"></i> Nouvelle Demande
+                            </NavLink>
+                        </li>
+                    }
+
+                    @if (currentUser.HasRole(RoleEnum.ChefService))
+                    {
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/validation">
+                                <i class="bi bi-check-circle"></i> Validation
+                            </NavLink>
+                        </li>
+                    }
+
+                    @if (currentUser.HasRole(RoleEnum.Administrateur))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear"></i> Administration
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="/admin/users">
+                                        <i class="bi bi-people"></i> Utilisateurs
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/admin/roles">
+                                        <i class="bi bi-shield-check"></i> Rôles
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="/admin/audit">
+                                        <i class="bi bi-journal-text"></i> Audit
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/health">
+                            <i class="bi bi-activity"></i> Diagnostic
+                        </NavLink>
+                    </li>
+                }
+            </ul>
+
+            @if (currentUser != null)
+            {
+                <div class="d-flex align-items-center text-white">
+                    <div class="me-3">
+                        <i class="bi bi-person-circle"></i>
+                        <strong>@currentUser.UserName</strong>
+                        <small class="d-block">@string.Join(", ", currentUser.Roles)</small>
+                    </div>
+                </div>
+            }
+            else if (isLoading)
+            {
+                <div class="spinner-border spinner-border-sm text-light" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+            }
+            else
+            {
+                <span class="text-white">
+                    <i class="bi bi-exclamation-triangle"></i> Non connecté
+                </span>
+            }
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool collapseNavMenu = true;
+    private UserInfoDTO? currentUser;
+    private bool isLoading = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            currentUser = await AuthService.GetCurrentUserAsync();
+        }
+        catch (Exception)
+        {
+            // Log silencieux, l'utilisateur verra "Non connecté"
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

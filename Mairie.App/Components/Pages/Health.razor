@@ -1,0 +1,144 @@
+﻿@page "/health" 
+@inject IHttpClientFactory HttpClientFactory
+@inject IConfiguration Configuration
+
+<PageTitle>Diagnostic Système</PageTitle>
+
+<div class="container mt-4">
+    <h1><i class="bi bi-activity"></i> Diagnostic Système</h1>
+    <p class="text-muted">Vérification de l'état de santé de l'application et de l'API</p>
+
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Vérification en cours...</span>
+            </div>
+            <p class="mt-2">Vérification en cours...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row mt-4">
+            <!-- État de l'application -->
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="bi bi-check-circle"></i> Application Blazor</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>État:</strong> <span class="badge bg-success">Opérationnel</span></p>
+                        <p><strong>Mode:</strong> @(isDevelopment ? "Développement" : "Production")</p>
+                        <p><strong>Date:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- État de l'API -->
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header @(apiHealthStatus ? "bg-success" : "bg-danger") text-white">
+                        <h5><i class="bi @(apiHealthStatus ? "bi-check-circle" : "bi-x-circle")"></i> API Backend</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            <strong>État:</strong>
+                            <span class="badge @(apiHealthStatus ? "bg-success" : "bg-danger")">
+                                @(apiHealthStatus ? "Accessible" : "Inaccessible")
+                            </span>
+                        </p>
+                        <p><strong>URL:</strong> <code>@apiBaseUrl</code></p>
+                        @if (!string.IsNullOrEmpty(apiErrorMessage))
+                        {
+                            <div class="alert alert-danger mt-2">
+                                <i class="bi bi-exclamation-triangle"></i> @apiErrorMessage
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations de configuration -->
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <h5><i class="bi bi-gear"></i> Configuration</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>URL de l'API:</strong> <code>@apiBaseUrl</code></p>
+                        <p><strong>Timeout API:</strong> @apiTimeout secondes</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Authentification:</strong> Windows (Negotiate)</p>
+                        <p><strong>HTTPS:</strong> <span class="badge bg-success">Activé</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-4 text-center">
+            <button class="btn btn-primary" @onclick="CheckHealthAsync">
+                <i class="bi bi-arrow-clockwise"></i> Revérifier
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private bool apiHealthStatus = false;
+    private string apiErrorMessage = string.Empty;
+    private string apiBaseUrl = string.Empty;
+    private int apiTimeout = 30;
+    private bool isDevelopment = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+        apiBaseUrl = Configuration["ApiSettings:BaseUrl"] ?? "Non configurée";
+        apiTimeout = Configuration.GetValue<int>("ApiSettings:Timeout", 30);
+
+        await CheckHealthAsync();
+    }
+
+    private async Task CheckHealthAsync()
+    {
+        isLoading = true;
+        apiHealthStatus = false;
+        apiErrorMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            var httpClient = HttpClientFactory.CreateClient("DemandesAPI");
+
+            // Tentative d'appel au endpoint de health (si disponible)
+            var response = await httpClient.GetAsync("/health");
+
+            if (response.IsSuccessStatusCode)
+            {
+                apiHealthStatus = true;
+            }
+            else
+            {
+                apiErrorMessage = $"L'API a retourné le code: {(int)response.StatusCode}";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            apiErrorMessage = $"Erreur de connexion: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            apiErrorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

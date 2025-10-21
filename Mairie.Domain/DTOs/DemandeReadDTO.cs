@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Mairie.Domain.DTOs
@@ -17,6 +18,7 @@ namespace Mairie.Domain.DTOs
         [SwaggerSchema("Type de demande faite par le citoyen")]
         public string TypeDemande { get; set; } = string.Empty;
         [SwaggerSchema("Statut :EnAttente, EnCours, Terminee, Annulee")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public StatutEnum Statut { get; set; } = 0;
     }
 }

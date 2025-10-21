@@ -1,0 +1,138 @@
+﻿@page "/demandes" 
+@inherits AuthorizedComponentBase
+
+<PageTitle>Liste des Demandes</PageTitle>
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h1>Liste des Demandes</h1>
+        </div>
+        @if (CurrentUser?.HasRole(RoleEnum.Agent) == true)
+        {
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="NavigateToCreate">
+                    <i class="bi bi-plus-circle"></i> Nouvelle Demande
+                </button>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @ErrorMessage
+            <button type="button" class="btn-close" @onclick="ClearError"></button>
+        </div>
+    }
+
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+        </div>
+    }
+    else if (CurrentUser == null)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            Vous devez être connecté pour accéder à cette page.
+        </div>
+    }
+    else
+    {
+        <!-- Filtres et recherche -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" placeholder="Rechercher..."
+                               @bind="searchTerm" @bind:event="oninput" />
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" @bind="selectedStatut">
+                            <option value="">Tous les statuts</option>
+                            <option value="@StatutEnum.EnAttente">En Attente</option> 
+                            <option value="@StatutEnum.Annulee">Refusée</option>
+                            <option value="@StatutEnum.EnCours">En Cours</option>
+                            <option value="@StatutEnum.Terminee">Terminée</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-secondary w-100" @onclick="LoadDemandesAsync">
+                            <i class="bi bi-arrow-clockwise"></i> Rafraîchir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (filteredDemandes?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom du Citoyen</th>
+                            <th>Statut</th> 
+                            <th>Type de demande</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var demande in filteredDemandes)
+                        {
+                            <tr>
+                                <td>@demande.Id</td>
+                                <td>@demande.NomCitoyen</td>
+                                <td>
+                                    <span class="badge @GetStatutBadgeClass(demande.Statut)">
+                                        @GetStatutLabel(demande.Statut)
+                                    </span>
+                                </td> 
+                                <td>@demande.TypeDemande</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" @onclick="() => ViewDetails(demande.Id)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                    @if (CurrentUser.HasRole(RoleEnum.Agent) && demande.Statut == StatutEnum.EnAttente)
+                                    {
+                                        <button class="btn btn-sm btn-warning" @onclick="() => EditDemande(demande.Id)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteDemande(demande.Id)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
+
+                                    @if (CurrentUser.HasRole( RoleEnum.ChefService) && demande.Statut == StatutEnum.EnAttente)
+                                    {
+                                        <button class="btn btn-sm btn-success" @onclick="() => ValiderDemande(demande.Id)">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => RefuserDemande(demande.Id)">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                Aucune demande trouvée.
+            </div>
+        }
+    }
+</div>
+
+ 

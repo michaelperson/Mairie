@@ -1,0 +1,174 @@
+﻿@page "/"
+@inherits AuthorizedComponentBase
+
+<PageTitle>Accueil</PageTitle>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center mb-4">
+            <h1 class="display-4">
+                <i class="bi bi-clipboard-check text-primary"></i>
+                Système de Gestion des Demandes
+            </h1>
+            <p class="lead text-muted">
+                Application sécurisée avec authentification Windows
+            </p>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+        </div>
+    }
+    else if (CurrentUser == null)
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="alert alert-warning text-center">
+                    <i class="bi bi-exclamation-triangle fs-1"></i>
+                    <h4 class="mt-3">Authentification requise</h4>
+                    <p>Vous devez être authentifié via Windows pour accéder à cette application.</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card border-primary mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="bi bi-person-circle"></i> Bienvenue, @CurrentUser.UserName</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Nom d'utilisateur:</strong> @CurrentUser.UserName</p>
+                        <p>
+                            <strong>Rôles:</strong>
+                            @foreach (var role in CurrentUser.Roles)
+                            {
+                                <span class="badge bg-info me-1">@role</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            @if (CurrentUser.HasRole(RoleEnum.Agent))
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-plus-circle-fill text-primary" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Créer une Demande</h5>
+                            <p class="card-text">Soumettez une nouvelle demande au système.</p>
+                            <a href="/demandes/create" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Nouvelle Demande
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (CurrentUser.HasRole(RoleEnum.Agent) || CurrentUser.HasRole(RoleEnum.ChefService))
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-list-ul text-success" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Consulter les Demandes</h5>
+                            <p class="card-text">Visualisez et gérez vos demandes.</p>
+                            <a href="/demandes" class="btn btn-success">
+                                <i class="bi bi-list-ul"></i> Voir les Demandes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (CurrentUser.HasRole(RoleEnum.ChefService))
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-check-circle-fill text-warning" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Valider des Demandes</h5>
+                            <p class="card-text">Approuvez ou refusez les demandes en attente.</p>
+                            <a href="/validation" class="btn btn-warning">
+                                <i class="bi bi-check-circle"></i> Validation
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (CurrentUser.HasRole(RoleEnum.Administrateur))
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-gear-fill text-danger" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-3">Administration</h5>
+                            <p class="card-text">Gérez les utilisateurs et les rôles du système.</p>
+                            <a href="/admin/users" class="btn btn-danger">
+                                <i class="bi bi-gear"></i> Administration
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-activity text-info" style="font-size: 3rem;"></i>
+                        <h5 class="card-title mt-3">Diagnostic</h5>
+                        <p class="card-text">Vérifiez l'état de santé du système.</p>
+                        <a href="/health" class="btn btn-info">
+                            <i class="bi bi-activity"></i> Diagnostic
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="bi bi-shield-check"></i> Principes de Sécurité</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6><i class="bi bi-lock"></i> Authentification Windows</h6>
+                                <p class="small">L'application utilise l'authentification Windows native.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6><i class="bi bi-shield-lock"></i> Autorisation par Rôles</h6>
+                                <p class="small">Chaque fonctionnalité est protégée par des contrôles d'accès.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6><i class="bi bi-eye-slash"></i> Security by Design</h6>
+                                <p class="small">La sécurité est intégrée dès la conception de l'application.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    protected override Task OnUserLoadedAsync()
+    {
+        // Pas de restriction sur la page d'accueil
+        return Task.CompletedTask;
+    }
+}

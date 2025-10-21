@@ -1,0 +1,28 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <NavMenu />
+
+    <main class="main">
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<footer class="border-top footer text-muted py-3 mt-5">
+    <div class="container text-center">
+        <p>&copy; @DateTime.Now.Year - Système de Gestion des Demandes</p>
+        <p class="small">
+            <i class="bi bi-shield-check"></i> Application sécurisée - Security by Design
+        </p>
+    </div>
+</footer>
+
+<div id="blazor-error-ui">
+    Une erreur inattendue s'est produite.
+    <a href="" class="reload">Recharger</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+ 

@@ -1,0 +1,214 @@
+/* Styles globaux de l'application */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+}
+
+html, body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+.content {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+/* Cards */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+/* Badges */
+.badge {
+    padding: 0.5em 0.75em;
+    font-size: 0.85rem;
+}
+
+/* Boutons */
+.btn {
+    transition: all 0.3s ease;
+}
+
+    .btn:hover {
+        transform: scale(1.05);
+    }
+
+/* Tables */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+/* Formulaires */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Messages d'erreur */
+.validation-message {
+    color: var(--danger-color);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Loading states */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Footer */
+.footer {
+    background-color: #f8f9fa;
+    margin-top: auto;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 0.5rem;
+}
+
+    .alert i {
+        margin-right: 0.5rem;
+    }
+
+/* Modal overlay */
+.modal.show {
+    display: block !important;
+}
+
+/* Blazor Error UI */
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.3);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Security indicators */
+.security-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 0.5rem;
+    color: #004085;
+}
+
+    .security-badge i {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+/* Status indicators */
+.status-success {
+    color: var(--success-color);
+}
+
+.status-warning {
+    color: var(--warning-color);
+}
+
+.status-danger {
+    color: var(--danger-color);
+}
+
+.status-info {
+    color: var(--info-color);
+}
+
+/* Animation pour les transitions */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Accessibilité */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus visible pour l'accessibilité */
+*:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
