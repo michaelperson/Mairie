@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Mairie.DAL.Configuration;
+using Mairie.Domain.DTOs;
 using Mairie.Domain.Entities;
 using Mairie.Domain.Interfaces;
 using System;
@@ -34,6 +35,19 @@ namespace Mairie.DAL.Services
                 auditLog.DateAction,
                 auditLog.Resultat
             });
+        }
+
+        public async Task<IEnumerable<AuditLogDTO>> GetAllAsync()
+        {
+            const string sql = @"
+            SELECT 
+                Id, 
+                WindowsId, Action, DateAction, Resultat 
+            FROM AuditLog
+            ORDER BY DateAction DESC";
+
+            using var connection = _dbConfig.CreateConnection();
+            return await connection.QueryAsync<AuditLogDTO>(sql);
         }
     }
 }

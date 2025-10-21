@@ -4,8 +4,6 @@ using Mairie.Domain.Entities;
 using Mairie.Domain.Enumerations;
 using Mairie.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 

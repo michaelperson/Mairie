@@ -1,5 +1,6 @@
 using Mairie.API.Helpers;
 using Mairie.API.Infrastructure.Security;
+using Mairie.API.Middleware;
 using Mairie.DAL.Configuration;
 using Mairie.DAL.Services;
 using Mairie.Domain.Interfaces;
@@ -8,10 +9,43 @@ using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.HttpSys;
 using OwaspHeaders.Core.Extensions;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.MSSqlServer;
+using System.Collections.ObjectModel;
+using System.Data;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+// Récupération de la chaîne de connexion depuis les configurations 
+string connectionString = builder.Configuration["DefaultConnection"] ?? builder.Configuration["ConnectionStrings:DefaultConnection"] ??
+     throw new InvalidOperationException("Connection string 'DefaultConnection' introuvable"); 
+// Configuration Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+  //  .Filter.ByIncludingOnly(evt => evt.Level <= LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .Enrich.WithProperty("Application", "MairieApi")
+    // Sink vers fichier réseau avec rollup
+    .WriteTo.File(
+        path: builder.Configuration["Logging:FilePath"] ?? @"\\serveur\logs\app-.log",
+        rollingInterval: RollingInterval.Day,
+        rollOnFileSizeLimit: true,
+        fileSizeLimitBytes: 10 * 1024 * 1024, // 10 MB
+        retainedFileCountLimit: 30, // Garde 30 jours de logs
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{MachineName}] [{ThreadId}] {Message:lj}{NewLine}{Exception}")
+    // Console pour le développement
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+
 builder.Services.AddControllers();
 // Configuration de l'authentification Windows
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
@@ -40,9 +74,7 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-// Récupération de la chaîne de connexion depuis les configurations 
-string connectionString =builder.Configuration["DefaultConnection"]?? builder.Configuration    ["ConnectionStrings:DefaultConnection"]?? 
-     throw new InvalidOperationException("Connection string 'DefaultConnection' introuvable"); 
+
 // Add services to the container.
 // Enregistrement de la configuration de la base de données avec la chaîne de connexion décryptée
 builder.Services.AddSingleton(new DatabaseConfiguration(SecretManager.Decrypt(connectionString).Replace("MairieDB", "MairieDB_test")));
@@ -85,6 +117,26 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 
 var app = builder.Build();
+//Gestion globale des erreurs 
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
+// Middleware de logging des requêtes
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    options.GetLevel = (httpContext, elapsed, ex) => ex != null
+        ? LogEventLevel.Error
+        : elapsed > 5000
+            ? LogEventLevel.Warning
+            : LogEventLevel.Information;
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+        diagnosticContext.Set("UserName", httpContext.User.Identity?.Name ?? "Anonymous");
+    };
+});
 
 //En production, l'application utilise HSTS
 if (!app.Environment.IsDevelopment())
@@ -113,4 +165,17 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.Run();
+try
+{
+    Log.Information("Démarrage de l'application Web API - Mairie Api");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "L'application a échoué au démarrage");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
