@@ -1,9 +1,12 @@
-﻿using Mairie.API.DTOs;
+﻿ 
+using Mairie.Domain.DTOs;
 using Mairie.Domain.Entities;
+using Mairie.Domain.Enumerations;
 using Mairie.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Mairie.API.Controllers
 {
@@ -21,6 +24,9 @@ namespace Mairie.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerResponse(200, "Liste des demandes", typeof(IEnumerable<DemandeReadDTO>))]
+        [SwaggerResponse(404, "Aucune demande trouvée")]
+        [SwaggerResponse(500, "Erreur lors de la récupération des données")]
         public async Task<ActionResult<IEnumerable<Demande>>> GetAll()
         {
             try
@@ -36,7 +42,14 @@ namespace Mairie.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Demande>> GetById(int id)
+        [SwaggerOperation(
+    Summary = "Récupère une demande par son identifiant",
+    Description = "Retourne les informations détaillées d’une demande d'un citoyen de la mairie."
+)]
+        [SwaggerResponse(200, "La demande identifiée par l'id", typeof(DemandeReadDTO))]
+        [SwaggerResponse(404, "Aucune demande trouvée avec l'id transmis")]
+        [SwaggerResponse(500, "Erreur lors de la récupération des données")]
+        public async Task<ActionResult<Demande>> GetById([SwaggerParameter("Identifiant de la demande", Required = true)] int id)
         {
             if (id <= 0)
             {
@@ -60,13 +73,9 @@ namespace Mairie.API.Controllers
         }
 
         [HttpGet("statut/{statut}")]
-        public async Task<ActionResult<IEnumerable<Demande>>> GetByStatut(string statut)
+        public async Task<ActionResult<IEnumerable<Demande>>> GetByStatut(StatutEnum statut)
         {
-            var statutsValides = new[] { "EnAttente", "EnCours", "Terminee", "Annulee" };
-            if (!statutsValides.Contains(statut))
-            {
-                return BadRequest("Statut invalide");
-            }
+             
 
             try
             {

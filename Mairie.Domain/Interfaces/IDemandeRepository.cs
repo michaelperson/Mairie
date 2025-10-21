@@ -1,4 +1,5 @@
 ﻿using Mairie.Domain.Entities;
+using Mairie.Domain.Enumerations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Mairie.Domain.Interfaces
         Task<int> CreateAsync(Demande demande);
         Task<bool> UpdateAsync(Demande demande);
         Task<bool> DeleteAsync(int id);
-        Task<IEnumerable<Demande>> GetByStatutAsync(string statut);
+        Task<IEnumerable<Demande>> GetByStatutAsync(StatutEnum statut);
         Task<IEnumerable<Demande>> SearchAsync(string searchTerm);
     }
 }

@@ -8,16 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mairie.DAL.Repositories
+namespace Mairie.DAL.Services
 {
-    public class UserRoleRepository : IUserRoleRepository
+    public class UserRoleRepository : BaseRepository, IUserRoleRepository
     {
-        private readonly DatabaseConfiguration _dbConfig;
-
-        public UserRoleRepository(DatabaseConfiguration dbConfig)
-        {
-            _dbConfig = dbConfig ?? throw new ArgumentNullException(nameof(dbConfig));
-        }
+        public UserRoleRepository(DatabaseConfiguration dbConfig) : base(dbConfig) { }
 
         public async Task<IEnumerable<string>> GetRolesByWindowsIdAsync(string windowsId)
         {

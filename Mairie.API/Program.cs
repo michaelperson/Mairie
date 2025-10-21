@@ -1,12 +1,14 @@
 using Mairie.API.Helpers;
 using Mairie.API.Infrastructure.Security;
 using Mairie.DAL.Configuration;
-using Mairie.DAL.Repositories;
+using Mairie.DAL.Services;
 using Mairie.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Server.HttpSys;
+using OwaspHeaders.Core.Extensions;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -42,7 +44,26 @@ builder.Services.AddScoped<IClaimsTransformation, RoleClaimsTransformation>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(
+    c =>
+    {
+        c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Version = "v1",
+            Title = "API Mairie",
+            Description = "API interne de la Mairie"
+        });
+        c.EnableAnnotations();
+        c.SchemaFilter<EnumSchemaFilter>();
+    }
+
+
+
+    );
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 
 
@@ -56,7 +77,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    // Recommandé pour la production pour forcer HTTPS
+    app.UseHsts();
+}
+// Ajoute des en-têtes comme X-Frame-Options, X-Content-Type-Options, Referrer-Policy, etc.
+app.UseSecureHeadersMiddleware();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
