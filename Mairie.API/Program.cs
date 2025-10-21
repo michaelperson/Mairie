@@ -49,6 +49,7 @@ builder.Services.AddSingleton(new DatabaseConfiguration(SecretManager.Decrypt(co
 // Enregistrement des repositories
 builder.Services.AddScoped<IDemandeRepository, DemandeRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 // Enregistrement de l'accessor pour le contexte HTTP et récupération des informations utilisateur 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContext, UserContext>();

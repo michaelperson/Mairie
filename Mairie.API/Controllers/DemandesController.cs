@@ -5,6 +5,7 @@ using Mairie.Domain.Enumerations;
 using Mairie.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -15,12 +16,14 @@ namespace Mairie.API.Controllers
     public class DemandesController : ControllerBase
     {
         private readonly IAuthorizationService _authService;
+        private readonly IAuditService auditService;
         private readonly IDemandeRepository _repository;
         private readonly ILogger<DemandesController> _logger;
 
-        public DemandesController(IAuthorizationService authService, IDemandeRepository repository, ILogger<DemandesController> logger)
+        public DemandesController(IAuthorizationService authService, IAuditService auditService, IDemandeRepository repository, ILogger<DemandesController> logger)
         {
             _authService = authService;
+            this.auditService = auditService;
             _repository = repository;
             _logger = logger;
         }
@@ -152,11 +155,27 @@ namespace Mairie.API.Controllers
 
                 var id = await _repository.CreateAsync(demande);
                 demande.Id = id;
+                AuditLog auditLog = new AuditLog()
+                {
+                    Action = "Create",
+                    DateAction = DateTime.Now,
+                    WindowsId = User.Identity?.Name ?? "Inconnu",
+                    Resultat = "Success"
+                };
+                await auditService.CreateAuditLog(auditLog);
 
                 return CreatedAtAction(nameof(GetById), new { id }, demande);
             }
             catch (Exception ex)
             {
+                AuditLog auditLog = new AuditLog()
+                {
+                    Action = "Create",
+                    DateAction = DateTime.Now,
+                    WindowsId = User.Identity?.Name ?? "Inconnu",
+                    Resultat = "Failed"
+                };
+                await auditService.CreateAuditLog(auditLog);
                 _logger.LogError(ex, "Erreur lors de la création de la demande");
                 return StatusCode(500, "Une erreur est survenue");
             }
@@ -193,13 +212,22 @@ namespace Mairie.API.Controllers
                     Statut = existingDemande.Statut,
                     DateCreation = existingDemande.DateCreation
                 };
-
+                AuditLog auditLog = new AuditLog()
+                {
+                    Action = "Update",
+                    DateAction = DateTime.Now,
+                    WindowsId = User.Identity?.Name ?? "Inconnu",
+                    Resultat = $"Success - Mise à jour Demande {dto.Id}"
+                };
                 var success = await _repository.UpdateAsync(demande);
                 if (!success)
                 {
+                    auditLog.Resultat = $"Failed - Mise à jour Demande {dto.Id}";
+                    await auditService.CreateAuditLog(auditLog);
                     return StatusCode(500, "Échec de la mise à jour");
                 }
-
+                
+                await auditService.CreateAuditLog(auditLog);
                 return NoContent();
             }
             catch (Exception ex)
@@ -242,11 +270,21 @@ namespace Mairie.API.Controllers
                 };
 
                 var success = await _repository.UpdateAsync(demande);
+                AuditLog auditLog = new AuditLog()
+                {
+                    Action = "Valider",
+                    DateAction = DateTime.Now,
+                    WindowsId = User.Identity?.Name ?? "Inconnu",
+                    Resultat = $"Success - Validation de la demande {id}"
+                };
                 if (!success)
                 {
+                    auditLog.Resultat = $"Failed - Validation de la demande {id}";
+                    await auditService.CreateAuditLog(auditLog);
                     return StatusCode(500, "Échec de la mise à jour");
                 }
-
+                
+                await auditService.CreateAuditLog(auditLog);
                 return NoContent();
             }
             catch (Exception ex)
@@ -274,13 +312,21 @@ namespace Mairie.API.Controllers
                 {
                     return NotFound($"Demande avec l'ID {id} introuvable");
                 }
-
+                AuditLog auditLog = new AuditLog()
+                {
+                    Action = "Delete",
+                    DateAction = DateTime.Now,
+                    WindowsId = User.Identity?.Name ?? "Inconnu",
+                    Resultat = $"Success - Suppression de la Demande {id}"
+                };
                 var success = await _repository.DeleteAsync(id);
                 if (!success)
                 {
+                    auditLog.Resultat = $"Failed - Suppression de la Demande {id}";
+                    await auditService.CreateAuditLog(auditLog);
                     return StatusCode(500, "Échec de la suppression");
                 }
-
+                await auditService.CreateAuditLog(auditLog);
                 return NoContent();
             }
             catch (Exception ex)
